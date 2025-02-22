@@ -7,7 +7,6 @@ import {
   Body1,
   tokens
 } from "@fluentui/react-components";
-import type { TaskTemplate } from "./TabActivities";
 
 const useStyles = makeStyles({
   root: {

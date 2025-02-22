@@ -9,7 +9,6 @@ import {
   Radio,
   tokens
 } from "@fluentui/react-components";
-import type { TaskTemplate } from "./TabActivities";
 import { getMailDetails } from "../taskpane";
 
 const useStyles = makeStyles({
