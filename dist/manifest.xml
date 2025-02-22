@@ -117,14 +117,14 @@
 
       <Resources>
         <bt:Images>
-          <bt:Image id="icon_magik_16" DefaultValue="https://your-vps-domain.com/digitales-postfach/assets/icon_magik_16.png"/>
-          <bt:Image id="icon_magik_32" DefaultValue="https://your-vps-domain.com/digitales-postfach/assets/icon_magik_32.png"/>
-          <bt:Image id="icon_magik_80" DefaultValue="https://your-vps-domain.com/digitales-postfach/assets/icon_magik_80.png"/>
+          <bt:Image id="icon_magik_16" DefaultValue="https://lavelio.github.io/dp/dist/assets/icon_magik_16.png"/>
+          <bt:Image id="icon_magik_32" DefaultValue="https://lavelio.github.io/dp/dist/assets/icon_magik_32.png"/>
+          <bt:Image id="icon_magik_80" DefaultValue="https://lavelio.github.io/dp/dist/assets/icon_magik_80.png"/>
         </bt:Images>
 
         <bt:Urls>
-          <bt:Url id="Commands.Url" DefaultValue="https://your-vps-domain.com/digitales-postfach/commands.html"/>
-          <bt:Url id="Taskpane.Url" DefaultValue="https://your-vps-domain.com/digitales-postfach/taskpane.html"/>
+          <bt:Url id="Commands.Url" DefaultValue="https://lavelio.github.io/dp/dist/commands.html"/>
+          <bt:Url id="Taskpane.Url" DefaultValue="https://lavelio.github.io/dp/dist/taskpane.html"/>
           <!-- <bt:Url id="Taskpane2.Url" DefaultValue="https://lavelio.github.io/dp/answer_form.html"/> -->
         </bt:Urls>
 
