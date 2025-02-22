@@ -1,0 +1,8 @@
+node_modules/
+.vscode/
+.env
+*.log
+build/
+*.pfx
+*.pem
+.DS_Store
