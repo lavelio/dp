@@ -8,7 +8,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 
 const urlDev = "https://localhost:3000/";
 // Update this to your VPS domain
-const urlProd = "https://your-vps-domain.com/digitales-postfach/";
+const urlProd = "https://lavelio.github.io/dp/";
 
 async function getHttpsOptions() {
   const httpsOptions = await devCerts.getHttpsServerOptions();
