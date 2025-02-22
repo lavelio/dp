@@ -10,7 +10,7 @@
   <ProviderName>Digitales Postfach</ProviderName>
   <DefaultLocale>de-DE</DefaultLocale>
   <DisplayName DefaultValue="FG Digitales Postfach v1.0.0"/>
-  <Description DefaultValue="Das digitale Postfach für Fröhlich & Gottas"/>
+  <Description DefaultValue="Das digitale Postfach für Fröhlich &amp; Gottas"/>
   <IconUrl DefaultValue="https://lavelio.github.io/dp/assets/logo_64.png"/>
   <HighResolutionIconUrl DefaultValue="https://lavelio.github.io/dp/assets/logo_128.png"/>
   <SupportUrl DefaultValue="https://lavelio.github.io/dp/help.html"/>
