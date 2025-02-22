@@ -11,9 +11,9 @@
   <DefaultLocale>de-DE</DefaultLocale>
   <DisplayName DefaultValue="Digitales Postfach"/>
   <Description DefaultValue="Erstellen Sie eine Antwort mit 'Digitales Postfach'."/>
-  <IconUrl DefaultValue="https://lavelio.github.io/digitales-postfach/assets/logo_64.png"/>
-  <HighResolutionIconUrl DefaultValue="https://lavelio.github.io/digitales-postfach/assets/logo_128.png"/>
-  <SupportUrl DefaultValue="https://lavelio.github.io/digitales-postfach/help.html"/>
+  <IconUrl DefaultValue="https://lavelio.github.io/dp/assets/logo_64.png"/>
+  <HighResolutionIconUrl DefaultValue="https://lavelio.github.io/dp/assets/logo_128.png"/>
+  <SupportUrl DefaultValue="https://lavelio.github.io/dp/help.html"/>
 
   <AppDomains>
     <AppDomain>https://lavelio.github.io</AppDomain>
@@ -33,7 +33,7 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://lavelio.github.io/digitales-postfach/dist/taskpane.html"/>
+        <SourceLocation DefaultValue="https://lavelio.github.io/dp/dist/taskpane.html"/>
         <RequestedHeight>250</RequestedHeight>
       </DesktopSettings>
     </Form>
