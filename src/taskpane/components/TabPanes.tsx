@@ -3,7 +3,7 @@ import { makeStyles, Tab, TabList } from "@fluentui/react-components";
 import type { SelectTabData, SelectTabEvent, TabValue } from "@fluentui/react-components";
 import TabAnswer from "./TabAnswer";
 import TabSettings from "./TabSettings";
-import TabActivities from "./TabActivities";
+
 
 /* global localStorage */
 
@@ -42,9 +42,7 @@ export const TabPanes = () => {
         <Tab id="Answer" value="answer">
           Antwort
         </Tab>
-        <Tab id="Activities" value="activities">
-          Aktivitäten
-        </Tab>
+
         <Tab id="Settings" value="settings">
           Einstellungen
         </Tab>
@@ -52,7 +50,7 @@ export const TabPanes = () => {
 
       <div className={styles.tab_cont}>
         {selectedTab === "answer" && <TabAnswer />}
-        {selectedTab === "activities" && <TabActivities />}
+
         {selectedTab === "settings" && <TabSettings />}
       </div>
     </div>
