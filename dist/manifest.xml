@@ -6,17 +6,17 @@
   xsi:type="MailApp">
 
   <Id>aec8c261-f0b6-49c3-abc2-02eef1b129f9</Id>
-  <Version>3.1.109.0</Version>
+  <Version>1.0.0</Version>
   <ProviderName>Digitales Postfach</ProviderName>
   <DefaultLocale>de-DE</DefaultLocale>
-  <DisplayName DefaultValue="Digitales Postfach"/>
-  <Description DefaultValue="Erstellen Sie eine Antwort mit 'Digitales Postfach'."/>
-  <IconUrl DefaultValue="https://gasdev628.github.io/Digitales-Postfach/dist/assets/logo_64.png"/>
-  <HighResolutionIconUrl DefaultValue="https://gasdev628.github.io/Digitales-Postfach/dist/assets/logo_128.png"/>
-  <SupportUrl DefaultValue="https://gasdev628.github.io/Digitales-Postfach/help.html"/>
+  <DisplayName DefaultValue="FG Digitales Postfach v1.0.0"/>
+  <Description DefaultValue="Das digitale Postfach für Fröhlich & Gottas"/>
+  <IconUrl DefaultValue="https://lavelio.github.io/dp/assets/logo_64.png"/>
+  <HighResolutionIconUrl DefaultValue="https://lavelio.github.io/dp/assets/logo_128.png"/>
+  <SupportUrl DefaultValue="https://lavelio.github.io/dp/help.html"/>
 
   <AppDomains>
-    <AppDomain>https://gasdev628.github.io</AppDomain>
+    <AppDomain>https://lavelio.github.io</AppDomain>
     <AppDomain>https://fg.server.lavel.io</AppDomain>
   </AppDomains>
 
@@ -33,14 +33,14 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://gasdev628.github.io/Digitales-Postfach/dist/taskpane.html"/>
+        <SourceLocation DefaultValue="https://lavelio.github.io/dp/dist/taskpane.html"/>
         <RequestedHeight>250</RequestedHeight>
       </DesktopSettings>
     </Form>
 
     <!-- <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://gasdev628.github.io/Digitales-Postfach/dist/answer_form.html"/>
+        <SourceLocation DefaultValue="https://lavelio.github.io/dp/answer_form.html"/>
         <RequestedHeight>250</RequestedHeight>
       </DesktopSettings>
     </Form>     -->
@@ -117,15 +117,15 @@
 
       <Resources>
         <bt:Images>
-          <bt:Image id="icon_magik_16" DefaultValue="https://gasdev628.github.io/Digitales-Postfach/dist/assets/icon_magik_16.png"/>
-          <bt:Image id="icon_magik_32" DefaultValue="https://gasdev628.github.io/Digitales-Postfach/dist/assets/icon_magik_32.png"/>
-          <bt:Image id="icon_magik_80" DefaultValue="https://gasdev628.github.io/Digitales-Postfach/dist/assets/icon_magik_80.png"/>
+          <bt:Image id="icon_magik_16" DefaultValue="https://your-vps-domain.com/digitales-postfach/assets/icon_magik_16.png"/>
+          <bt:Image id="icon_magik_32" DefaultValue="https://your-vps-domain.com/digitales-postfach/assets/icon_magik_32.png"/>
+          <bt:Image id="icon_magik_80" DefaultValue="https://your-vps-domain.com/digitales-postfach/assets/icon_magik_80.png"/>
         </bt:Images>
 
         <bt:Urls>
-          <bt:Url id="Commands.Url" DefaultValue="https://gasdev628.github.io/Digitales-Postfach/dist/commands.html"/>
-          <bt:Url id="Taskpane.Url" DefaultValue="https://gasdev628.github.io/Digitales-Postfach/dist/taskpane.html"/>
-          <!-- <bt:Url id="Taskpane2.Url" DefaultValue="https://gasdev628.github.io/Digitales-Postfach/dist/answer_form.html"/> -->
+          <bt:Url id="Commands.Url" DefaultValue="https://your-vps-domain.com/digitales-postfach/commands.html"/>
+          <bt:Url id="Taskpane.Url" DefaultValue="https://your-vps-domain.com/digitales-postfach/taskpane.html"/>
+          <!-- <bt:Url id="Taskpane2.Url" DefaultValue="https://lavelio.github.io/dp/answer_form.html"/> -->
         </bt:Urls>
 
         <bt:ShortStrings>
