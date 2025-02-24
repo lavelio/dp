@@ -22,7 +22,9 @@ export async function sendRequest(
   sender: string,
   body: string,
   user_input: string,
-  user_email: string
+  user_email: string,
+  recipients: string[] = [],
+  cc: string[] = []
 ): Promise<any> {
   var url = Host + endpoint;
   console.log(` sendRequest to: ${url}`);
@@ -38,6 +40,10 @@ export async function sendRequest(
         subject: subject,
         body: body,
         sender: sender,
+        recipients: recipients,
+        cc: cc,
+        thread_body: body,
+        raw_content: null
       },
     ],
     user_input: user_input,

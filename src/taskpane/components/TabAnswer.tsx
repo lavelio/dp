@@ -113,11 +113,13 @@ const TabAnswer = () => {
       console.log("subject = " + data.subject);
       console.log("sender = " + data.sender);
       console.log("body = " + data.body);
+      console.log("recipients = " + JSON.stringify(data.recipients));
+      console.log("cc = " + JSON.stringify(data.cc));
       console.log("user_input = " + user_input);
       console.log("user_email = " + data.user_email);
 
       // send Request
-      sendRequest("/outlook/generate-email", apiKey, data.subject, data.sender, data.body, user_input, data.user_email)
+      sendRequest("/outlook/generate-email", apiKey, data.subject, data.sender, data.body, user_input, data.user_email, data.recipients, data.cc)
         .then(async (response) => {
           setShowSpinner(false);
 

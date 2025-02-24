@@ -19,7 +19,14 @@ export async function insertText(text: string) {
 
 // get Mail Details
 export async function getMailDetails(
-  callback: (data: { subject: string; sender: string; body: string; user_email: string }) => void
+  callback: (data: { 
+    subject: string; 
+    sender: string; 
+    body: string; 
+    user_email: string;
+    recipients: string[];
+    cc: string[];
+  }) => void
 ) {
   console.log("getMailDetails");
 
@@ -40,15 +47,33 @@ export async function getMailDetails(
       const sender = fromResult.value.emailAddress;
       const user_email = sender;
 
-      Office.context.mailbox.item.body.getAsync(Office.CoercionType.Text, (bodyResult) => {
-        if (bodyResult.status === Office.AsyncResultStatus.Failed) {
-          console.error("Failed to get body:", bodyResult.error.message);
+      Office.context.mailbox.item.to.getAsync((toResult) => {
+        if (toResult.status === Office.AsyncResultStatus.Failed) {
+          console.error("Failed to get recipients:", toResult.error.message);
           return;
         }
 
-        const body = bodyResult.value;
+        const recipients = toResult.value.map((recipient) => recipient.emailAddress);
 
-        callback({ subject, sender, body, user_email });
+        Office.context.mailbox.item.cc.getAsync((ccResult) => {
+          if (ccResult.status === Office.AsyncResultStatus.Failed) {
+            console.error("Failed to get CC:", ccResult.error.message);
+            return;
+          }
+
+          const cc = ccResult.value.map((recipient) => recipient.emailAddress);
+
+          Office.context.mailbox.item.body.getAsync(Office.CoercionType.Text, (bodyResult) => {
+            if (bodyResult.status === Office.AsyncResultStatus.Failed) {
+              console.error("Failed to get body:", bodyResult.error.message);
+              return;
+            }
+
+            const body = bodyResult.value;
+
+            callback({ subject, sender, body, user_email, recipients, cc });
+          });
+        });
       });
     });
   });
