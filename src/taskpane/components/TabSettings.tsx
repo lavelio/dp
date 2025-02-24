@@ -45,14 +45,7 @@ const TabSettings = () => {
   const ValidateField = (): boolean => {
     let valid = true;
     var apiKey = keyValue.current.trim();
-
-    if (!/^[a-zA-Z0-9]{90,100}$/gm.test(apiKey) && apiKey != "") {
-      setKeyValue({ ...keyValue, state: "error" });
-      valid = false;
-    } else {
-      setKeyValue({ ...keyValue, state: "none" });
-    }
-
+    setKeyValue({ ...keyValue, current: apiKey, state: "none" });
     return valid;
   };
 
