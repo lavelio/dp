@@ -1,11 +1,34 @@
 import * as React from "react";
-import { Button, Dialog, DialogSurface, Field, InfoLabel, Label, LabelProps, Spinner, Textarea, makeStyles } from "@fluentui/react-components";
+import { 
+  Button, 
+  Dialog, 
+  DialogSurface, 
+  Field, 
+  InfoLabel, 
+  Label, 
+  LabelProps, 
+  Spinner, 
+  Textarea, 
+  makeStyles,
+  Badge,
+  Text,
+  Divider,
+  Toast,
+  ToastTitle,
+  useToastController,
+  Toaster
+} from "@fluentui/react-components";
 import DialogForm from "./DialogForm";
 import { DialogInfo, FieldInfo, sendRequest } from "../../../helpers";
 import { getMailDetails, insertText } from "../taskpane";
-import { Pencil } from "lucide-react";
+import { Pencil, FileText, X, Upload, CheckCircle2 } from "lucide-react";
 
-/* global console, HTMLTextAreaElement, localStorage */
+/* global console, HTMLTextAreaElement, HTMLDivElement, localStorage, File, fetch */
+
+// API Configuration
+const BUCKET_NAME = "fg-chat-ocr";
+const OCR_API_ENDPOINT = "https://fg.server.lavel.io/outlook/ocr-detect";
+const PRESIGNED_URL_ENDPOINT = "https://fg.server.lavel.io/generate_presigned_upload_url";
 
 const useStyles = makeStyles({
   root: {
@@ -33,6 +56,68 @@ const useStyles = makeStyles({
     marginLeft: "2px",
     marginRight: "4px",
   },
+  dropZone: {
+    border: "2px dashed #ccc",
+    borderRadius: "4px",
+    padding: "20px",
+    textAlign: "center",
+    marginBottom: "15px",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+  },
+  dropZoneActive: {
+    border: "2px dashed #0078d4",
+    backgroundColor: "rgba(0, 120, 212, 0.05)",
+  },
+  dropZoneSuccess: {
+    border: "2px dashed #107c10",
+    backgroundColor: "rgba(16, 124, 16, 0.05)",
+  },
+  filePreview: {
+    display: "flex",
+    alignItems: "center",
+    padding: "8px 12px",
+    backgroundColor: "#f3f2f1",
+    borderRadius: "4px",
+    marginBottom: "15px",
+  },
+  fileIcon: {
+    marginRight: "8px",
+    color: "#0078d4",
+  },
+  fileName: {
+    flex: 1,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+  removeButton: {
+    cursor: "pointer",
+    color: "#605e5c",
+    "&:hover": {
+      color: "#d13438",
+    },
+  },
+  divider: {
+    margin: "15px 0",
+  },
+  fileUploadInfo: {
+    marginBottom: "10px",
+    fontSize: "12px",
+    color: "#605e5c",
+  },
+  ocrCompletedMessage: {
+    color: "green",
+    display: "block",
+    marginTop: "5px",
+  },
+  checkIcon: {
+    verticalAlign: "middle",
+    marginRight: "5px",
+  },
+  hiddenInput: {
+    display: "none",
+  }
 });
 
 const TabAnswer = () => {
@@ -42,9 +127,20 @@ const TabAnswer = () => {
   const [showSpinner, setShowSpinner] = React.useState<boolean>(false); // spinner
 
   const [answerValue, setAnswerValue] = React.useState<FieldInfo>({ current: "", state: "none" }); // answer field value
+  // Text input for OCR results - used to store and display extracted text
+  const [textInput, setTextInput] = React.useState<string>("");
+  const [isDragging, setIsDragging] = React.useState<boolean>(false);
+  const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);
+  const [isUploading, setIsUploading] = React.useState<boolean>(false);
+  const [isOcrProcessing, setIsOcrProcessing] = React.useState<boolean>(false);
+  const [ocrCompleted, setOcrCompleted] = React.useState<boolean>(false);
+  // Track file names for OCR processing - used in the processOCR function
+  const [fileNames, setFileNames] = React.useState<string[]>([]);
 
-  const def_answer =
-    "Eingeben..";
+  const dropZoneRef = React.useRef<HTMLDivElement>(null);
+  const { dispatchToast } = useToastController();
+
+  const def_answer = "Eingeben..";
 
   React.useEffect(() => {
     const getStartData = async () => {
@@ -86,8 +182,229 @@ const TabAnswer = () => {
 
   // change answer value
   const handleChangeValue = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setAnswerValue({ ...answerValue, current: event.target.value });
+    const value = event.target.value;
+    setAnswerValue({ ...answerValue, current: value });
+    setTextInput(value); // Update textInput state as well
   };
+
+  // Handle file drop events
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const newFiles = Array.from(e.dataTransfer.files);
+      const validFiles = newFiles.filter((file) => file.type === "application/pdf");
+      const invalidFiles = newFiles.length - validFiles.length;
+      
+      if (invalidFiles > 0) {
+        setShowDialog({
+          show: true,
+          text: `${invalidFiles} Datei(en) wurden ignoriert. Nur PDF-Dateien werden unterstützt.`,
+        });
+      }
+      
+      if (validFiles.length > 0) {
+        const updatedFiles = [...uploadedFiles, ...validFiles].slice(0, 5);
+        setUploadedFiles(updatedFiles);
+        setOcrCompleted(false);
+        
+        if (uploadedFiles.length + validFiles.length > 5) {
+          setShowDialog({ show: true, text: "Maximal 5 Dateien können hochgeladen werden." });
+        }
+      }
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files);
+      const validFiles = newFiles.filter((file) => file.type === "application/pdf");
+      const invalidFiles = newFiles.length - validFiles.length;
+      
+      if (invalidFiles > 0) {
+        setShowDialog({
+          show: true,
+          text: `${invalidFiles} Datei(en) wurden ignoriert. Nur PDF-Dateien werden unterstützt.`,
+        });
+      }
+      
+      if (validFiles.length > 0) {
+        const updatedFiles = [...uploadedFiles, ...validFiles].slice(0, 5);
+        setUploadedFiles(updatedFiles);
+        setOcrCompleted(false);
+        
+        if (uploadedFiles.length + validFiles.length > 5) {
+          setShowDialog({ show: true, text: "Maximal 5 Dateien können hochgeladen werden." });
+        }
+      }
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    const updatedFiles = [...uploadedFiles];
+    updatedFiles.splice(index, 1);
+    setUploadedFiles(updatedFiles);
+    // Reset OCR status if all files are removed
+    if (updatedFiles.length === 0) {
+      setOcrCompleted(false);
+      setFileNames([]);
+    }
+  };
+
+  const triggerFileInput = () => {
+    const fileInput = document.getElementById('file-input') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  };
+
+  // Upload files to S3 using presigned URLs and trigger OCR processing
+  const uploadFilesToS3 = async () => {
+    if (uploadedFiles.length === 0) return;
+    
+    setIsUploading(true);
+    setIsOcrProcessing(true);
+    
+    try {
+      // Upload each file to S3 using presigned URLs
+      const newFileNames = [];
+      const newFileUuids = [];
+      const newFileTypes = [];
+      
+      for (const file of uploadedFiles) {
+        // Get presigned URL from the server
+        const presignedUrlResponse = await fetch(PRESIGNED_URL_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: localStorage.getItem("apiKey") || ""
+          },
+          body: JSON.stringify({
+            filename: file.name,
+            content_type: file.type,
+            bucket_name: BUCKET_NAME,
+          }),
+        });
+        
+        if (!presignedUrlResponse.ok) {
+          throw new Error(`Failed to get presigned URL: ${presignedUrlResponse.statusText}`);
+        }
+        
+        const presignedData = await presignedUrlResponse.json();
+        // Upload file using the presigned URL
+        const uploadResponse = await fetch(presignedData.url, {
+          method: "PUT",
+          headers: {
+            "Content-Type": file.type,
+          },
+          body: file,
+        });
+        
+        if (!uploadResponse.ok) {
+          throw new Error(`Failed to upload ${file.name}: ${uploadResponse.statusText}`);
+        }
+        
+        // Store the file information returned from the server
+        newFileNames.push(presignedData.filename);
+        newFileUuids.push(presignedData.uuid);
+        newFileTypes.push(presignedData.filetype);
+      }
+      
+      setFileNames(newFileNames);
+      setIsUploading(false);
+      
+      // Trigger OCR processing with the new file information
+      await triggerOcrProcessing(newFileUuids.map((uuid, index) => `${uuid}${newFileTypes[index]}`));
+    } catch (error) {
+      console.error("Error uploading files to S3:", error);
+      setShowDialog({ show: true, text: `Fehler beim Hochladen: ${error.message}` });
+      setIsUploading(false);
+      setIsOcrProcessing(false);
+    }
+  };
+  
+  // Trigger OCR processing on the backend
+  const triggerOcrProcessing = async (fileNames: string[]) => {
+    try {
+      const apiKey: string = localStorage.getItem("apiKey") || "";
+      
+      if (apiKey === "") {
+        setShowDialog({ show: true, text: "API-Schlüssel nicht angegeben" });
+        setIsOcrProcessing(false);
+        return;
+      }
+      
+      // Prepare files array according to OCRRequest schema
+      const files = fileNames.map((filename) => ({
+        filename,
+        bucket: BUCKET_NAME,
+      }));
+      
+      const response = await fetch(OCR_API_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: apiKey,
+        },
+        body: JSON.stringify({
+          files: files,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.detail || "OCR processing failed");
+      }
+      
+      // Update text input with OCR results if available
+      if (data.documents && data.documents.length > 0) {
+        // Combine text from all documents
+        const extractedText = data.documents.map((doc: { text: string }) => doc.text).join("\n\n");
+        
+        if (extractedText) {
+          setTextInput((prevText) => {
+            const newText = prevText ? `${prevText}\n\n${extractedText}` : extractedText;
+            return newText;
+          });
+        }
+      }
+      
+      setIsOcrProcessing(false);
+      setOcrCompleted(true);
+      
+      // Show success toast
+      dispatchToast(
+        <Toast>
+          <ToastTitle media={<CheckCircle2 color="green" />}>OCR erfolgreich abgeschlossen</ToastTitle>
+        </Toast>,
+        { position: "top", timeout: 5000 }
+      );
+      
+    } catch (error) {
+      console.error("Error processing OCR:", error);
+      setShowDialog({ show: true, text: `OCR-Fehler: ${error.message}` });
+      setIsOcrProcessing(false);
+    }
+  };
+
+  // React to file uploads
+  React.useEffect(() => {
+    if (uploadedFiles.length > 0 && !isUploading && !isOcrProcessing && !ocrCompleted) {
+      uploadFilesToS3();
+    }
+  }, [uploadedFiles, isUploading, isOcrProcessing, ocrCompleted]);
 
   // button - get full answer
   const onButtonSaveClick = () => {
@@ -95,12 +412,23 @@ const TabAnswer = () => {
       return;
     }
 
+    // Save both answer value and text input
     localStorage.setItem("answer", answerValue.current); // save
+    setTextInput(answerValue.current); // Ensure textInput is synced
 
     var apiKey: string = localStorage.getItem("apiKey"); // load apiKey from storage
 
     if (apiKey == "") {
       setShowDialog({ show: true, text: "API-Schlüssel nicht angegeben" });
+      return;
+    }
+    
+    // Check if we need to wait for OCR processing
+    if (uploadedFiles.length > 0 && !ocrCompleted) {
+      setShowDialog({ 
+        show: true, 
+        text: "Bitte warten Sie, bis die OCR-Verarbeitung der PDF-Dateien abgeschlossen ist, bevor Sie eine Antwort generieren." 
+      });
       return;
     }
 
@@ -117,9 +445,21 @@ const TabAnswer = () => {
       console.log("cc = " + JSON.stringify(data.cc));
       console.log("user_input = " + user_input);
       console.log("user_email = " + data.user_email);
+      console.log("files = " + (uploadedFiles.length > 0 ? uploadedFiles.map((f) => f.name).join(", ") : "none"));
 
       // send Request
-      sendRequest("/outlook/generate-email", apiKey, data.subject, data.sender, data.body, user_input, data.user_email, data.recipients, data.cc)
+      sendRequest(
+        "/outlook/generate-email", 
+        apiKey, 
+        data.subject, 
+        data.sender, 
+        data.body, 
+        user_input, 
+        data.user_email, 
+        data.recipients, 
+        data.cc,
+        uploadedFiles.length > 0 ? uploadedFiles : undefined
+      )
         .then(async (response) => {
           setShowSpinner(false);
 
@@ -148,10 +488,22 @@ const TabAnswer = () => {
 
   return (
     <div className={styles.root} role="tabpanel" aria-labelledby="Settings">
-      {showSpinner && (
+      <Toaster />
+      
+      {(showSpinner || isUploading || isOcrProcessing) && (
         <Dialog defaultOpen={true}>
           <DialogSurface className={styles.spinner}>
-            <Spinner autoFocus labelPosition="after" label="Loading..." />
+            <Spinner 
+              autoFocus 
+              labelPosition="after" 
+              label={
+                isUploading
+                  ? "Dateien werden hochgeladen..."
+                  : isOcrProcessing
+                    ? "OCR-Verarbeitung läuft..."
+                    : "Loading..."
+              }
+            />
           </DialogSurface>
         </Dialog>
       )}
@@ -188,6 +540,53 @@ const TabAnswer = () => {
             onChange={handleChangeValue}
           />
         </Field>
+
+        <Divider className={styles.divider} />
+
+        <Text className={styles.fileUploadInfo}>
+          Laden Sie bis zu 5 PDF-Dateien hoch, um Text zu extrahieren und in die Anfrage einzubeziehen
+        </Text>
+
+        <div 
+          ref={dropZoneRef}
+          className={`${styles.dropZone} ${isDragging ? styles.dropZoneActive : ""} ${ocrCompleted ? styles.dropZoneSuccess : ""}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={triggerFileInput}
+        >
+          <Upload size={24} />
+          <p>
+            PDF-Dateien hierher ziehen oder klicken zum Auswählen ({uploadedFiles.length}/5)
+            {ocrCompleted && uploadedFiles.length > 0 && (
+              <span className={styles.ocrCompletedMessage}>
+                <CheckCircle2 size={16} className={styles.checkIcon} />
+                OCR abgeschlossen
+              </span>
+            )}
+          </p>
+          <input
+            id="file-input"
+            type="file"
+            accept="application/pdf"
+            className={styles.hiddenInput}
+            multiple
+            onChange={handleFileSelect}
+            aria-label="PDF-Datei auswählen"
+          />
+        </div>
+        
+        {uploadedFiles.length > 0 && (
+          <div style={{ marginBottom: '15px' }}>
+            {uploadedFiles.map((file, index) => (
+              <div key={index} className={styles.filePreview}>
+                <FileText size={20} className={styles.fileIcon} />
+                <span className={styles.fileName}>{file.name}</span>
+                <X size={18} className={styles.removeButton} onClick={() => handleRemoveFile(index)} />
+              </div>
+            ))}
+          </div>
+        )}
 
         <Button className={styles.button_send} appearance="primary" onClick={onButtonSaveClick}>
           Antwort generieren

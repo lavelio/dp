@@ -23,10 +23,3 @@ Office.onReady(() => {
     />
   );
 });
-
-if ((module as any).hot) {
-  (module as any).hot.accept("../taskpane/components/App", () => {
-    const NextApp = require("../taskpane/components/App").default;
-    root?.render(NextApp);
-  });
-}

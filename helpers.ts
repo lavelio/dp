@@ -24,7 +24,8 @@ export async function sendRequest(
   user_input: string,
   user_email: string,
   recipients: string[] = [],
-  cc: string[] = []
+  cc: string[] = [],
+  files?: File[]
 ): Promise<any> {
   var url = Host + endpoint;
   console.log(` sendRequest to: ${url}`);
@@ -34,7 +35,7 @@ export async function sendRequest(
     authorization: apiKey,
   };
 
-  const data = {
+  const data: any = {
     messages: [
       {
         subject: subject,
@@ -50,6 +51,21 @@ export async function sendRequest(
     target_language: "german",
     user_email: user_email,
   };
+
+  // If files are provided, convert them to base64 and add them to the request
+  if (files && files.length > 0) {
+    const filePromises = files.map(async (file) => {
+      const fileBase64 = await fileToBase64(file);
+      return {
+        name: file.name,
+        type: file.type,
+        content: fileBase64,
+      };
+    });
+    
+    const fileData = await Promise.all(filePromises);
+    data.files = fileData;
+  }
 
   console.log("data = " + JSON.stringify(data, null, 2));
 
@@ -76,4 +92,19 @@ export async function sendRequest(
     console.log(`Invalid JSON: ${error}`);
     return { detail: `Invalid JSON: ${error}` };
   }
+}
+
+// Helper function to convert File to base64
+export function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const base64String = reader.result as string;
+      // Remove the data URL prefix (e.g., "data:application/pdf;base64,")
+      const base64Content = base64String.split(',')[1];
+      resolve(base64Content);
+    };
+    reader.onerror = error => reject(error);
+  });
 }
