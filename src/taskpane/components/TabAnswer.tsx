@@ -21,9 +21,9 @@ import {
 import DialogForm from "./DialogForm";
 import { DialogInfo, FieldInfo, sendRequest } from "../../../helpers";
 import { getMailDetails, insertText } from "../taskpane";
-import { Pencil, FileText, X, Upload, CheckCircle2 } from "lucide-react";
+import { Pencil, FileText, X, Upload, CheckCircle2, Copy } from "lucide-react";
 
-/* global console, HTMLTextAreaElement, HTMLDivElement, localStorage, File, fetch */
+/* global console, HTMLTextAreaElement, HTMLDivElement, localStorage, File, fetch, document */
 
 // API Configuration
 const BUCKET_NAME = "fg-chat-ocr";
@@ -96,6 +96,14 @@ const useStyles = makeStyles({
     color: "#605e5c",
     "&:hover": {
       color: "#d13438",
+    },
+  },
+  copyButton: {
+    cursor: "pointer",
+    color: "#605e5c",
+    marginRight: "8px",
+    "&:hover": {
+      color: "#0078d4",
     },
   },
   divider: {
@@ -262,6 +270,33 @@ const TabAnswer = () => {
     }
   };
 
+  // Copy OCR text to clipboard
+  const copyOcrText = () => {
+    if (textInput && textInput.trim() !== "") {
+      // Use document.execCommand as a fallback for Office Add-ins environment
+      try {
+        const textArea = document.createElement("textarea");
+        textArea.value = textInput;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        // Show success toast
+        dispatchToast(
+          <Toast>
+            <ToastTitle media={<CheckCircle2 color="green" />}>Text copied to clipboard</ToastTitle>
+          </Toast>,
+          { position: "top", timeout: 3000 }
+        );
+      } catch (error) {
+        console.error("Error copying text to clipboard:", error);
+        setShowDialog({ show: true, text: `Error copying text: ${error.message}` });
+      }
+    } else {
+      setShowDialog({ show: true, text: "No OCR text available to copy" });
+    }
+  };
+
   const triggerFileInput = () => {
     const fileInput = document.getElementById('file-input') as HTMLInputElement;
     if (fileInput) {
@@ -425,10 +460,7 @@ const TabAnswer = () => {
     
     // Check if we need to wait for OCR processing
     if (uploadedFiles.length > 0 && !ocrCompleted) {
-      setShowDialog({ 
-        show: true, 
-        text: "Bitte warten Sie, bis die OCR-Verarbeitung der PDF-Dateien abgeschlossen ist, bevor Sie eine Antwort generieren." 
-      });
+      setShowDialog({ show: true, text: "Bitte warten Sie, bis die OCR-Verarbeitung der PDF-Dateien abgeschlossen ist, bevor Sie eine Antwort generieren." });
       return;
     }
 
@@ -582,7 +614,8 @@ const TabAnswer = () => {
               <div key={index} className={styles.filePreview}>
                 <FileText size={20} className={styles.fileIcon} />
                 <span className={styles.fileName}>{file.name}</span>
-                <X size={18} className={styles.removeButton} onClick={() => handleRemoveFile(index)} />
+                <Copy size={18} className={styles.copyButton} onClick={copyOcrText} aria-label="Copy OCR text" />
+                <X size={18} className={styles.removeButton} onClick={() => handleRemoveFile(index)} aria-label="Remove file" />
               </div>
             ))}
           </div>

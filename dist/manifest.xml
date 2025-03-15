@@ -40,7 +40,7 @@
 
     <!-- <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://lavelio.github.io/dp/answer_form.html"/>
+        <SourceLocation DefaultValue="https://localhost:3000/answer_form.html"/>
         <RequestedHeight>250</RequestedHeight>
       </DesktopSettings>
     </Form>     -->
@@ -125,7 +125,7 @@
         <bt:Urls>
           <bt:Url id="Commands.Url" DefaultValue="https://lavelio.github.io/dp/dist/commands.html"/>
           <bt:Url id="Taskpane.Url" DefaultValue="https://lavelio.github.io/dp/dist/taskpane.html"/>
-          <!-- <bt:Url id="Taskpane2.Url" DefaultValue="https://lavelio.github.io/dp/answer_form.html"/> -->
+          <!-- <bt:Url id="Taskpane2.Url" DefaultValue="https://localhost:3000/answer_form.html"/> -->
         </bt:Urls>
 
         <bt:ShortStrings>
