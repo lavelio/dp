@@ -135,7 +135,9 @@ const TabAnswer = () => {
   const [showSpinner, setShowSpinner] = React.useState<boolean>(false); // spinner
 
   const [answerValue, setAnswerValue] = React.useState<FieldInfo>({ current: "", state: "none" }); // answer field value
-  // Text input for OCR results - used to store and display extracted text
+  // Store OCR results for each document separately
+  const [documentTexts, setDocumentTexts] = React.useState<{[key: string]: string}>({});
+  // Combined text input for all documents - used for display and answer generation
   const [textInput, setTextInput] = React.useState<string>("");
   const [isDragging, setIsDragging] = React.useState<boolean>(false);
   const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);
@@ -160,6 +162,13 @@ const TabAnswer = () => {
       }
 
       setAnswerValue({ current: answer, state: "none" });
+      
+      // Clear any previous OCR data when component mounts
+      setTextInput("");
+      setDocumentTexts({});
+      setUploadedFiles([]);
+      setOcrCompleted(false);
+      setFileNames([]);
     };
 
     getStartData(); // get Start Data
@@ -260,23 +269,50 @@ const TabAnswer = () => {
   };
 
   const handleRemoveFile = (index: number) => {
+    const fileToRemove = uploadedFiles[index];
     const updatedFiles = [...uploadedFiles];
     updatedFiles.splice(index, 1);
     setUploadedFiles(updatedFiles);
+    
+    // Remove the document text for this file
+    if (fileToRemove) {
+      const updatedDocumentTexts = { ...documentTexts };
+      delete updatedDocumentTexts[fileToRemove.name];
+      setDocumentTexts(updatedDocumentTexts);
+      
+      // Update the combined text input
+      updateCombinedText(updatedFiles, updatedDocumentTexts);
+    }
+    
     // Reset OCR status if all files are removed
     if (updatedFiles.length === 0) {
       setOcrCompleted(false);
       setFileNames([]);
+      setTextInput("");
+      setDocumentTexts({});
     }
   };
+  
+  // Helper function to update the combined text from all documents
+  const updateCombinedText = (files: File[], texts: { [key: string]: string }) => {
+    const combinedText = files
+      .map((file) => texts[file.name] || "")
+      .filter((text) => text.trim() !== "")
+      .join("\n\n");
+    setTextInput(combinedText);
+  };
 
-  // Copy OCR text to clipboard
-  const copyOcrText = () => {
-    if (textInput && textInput.trim() !== "") {
+  // Copy OCR text to clipboard for a specific document
+  const copyOcrText = (index: number) => {
+    const file = uploadedFiles[index];
+    const fileName = file ? file.name : "";
+    const textToCopy = fileName && documentTexts[fileName] ? documentTexts[fileName] : "";
+    
+    if (textToCopy && textToCopy.trim() !== "") {
       // Use document.execCommand as a fallback for Office Add-ins environment
       try {
         const textArea = document.createElement("textarea");
-        textArea.value = textInput;
+        textArea.value = textToCopy;
         document.body.appendChild(textArea);
         textArea.select();
         document.execCommand("copy");
@@ -293,7 +329,7 @@ const TabAnswer = () => {
         setShowDialog({ show: true, text: `Error copying text: ${error.message}` });
       }
     } else {
-      setShowDialog({ show: true, text: "No OCR text available to copy" });
+      setShowDialog({ show: true, text: "No OCR text available for this document" });
     }
   };
 
@@ -405,15 +441,27 @@ const TabAnswer = () => {
       
       // Update text input with OCR results if available
       if (data.documents && data.documents.length > 0) {
-        // Combine text from all documents
-        const extractedText = data.documents.map((doc: { text: string }) => doc.text).join("\n\n");
+        // Store text for each document separately
+        const updatedDocumentTexts = { ...documentTexts };
         
-        if (extractedText) {
-          setTextInput((prevText) => {
-            const newText = prevText ? `${prevText}\n\n${extractedText}` : extractedText;
-            return newText;
-          });
-        }
+        // Map each document to its file using the index
+        data.documents.forEach((doc: { text: string }, index: number) => {
+          if (index < fileNames.length && doc.text) {
+            // Use the original filename (without UUID) as the key
+            const originalFileName = uploadedFiles[index]?.name || `Document ${index + 1}`;
+            updatedDocumentTexts[originalFileName] = doc.text;
+          }
+        });
+        
+        setDocumentTexts(updatedDocumentTexts);
+        
+        // Update the combined text input
+        const combinedText = uploadedFiles
+          .map((file) => updatedDocumentTexts[file.name] || "")
+          .filter((text) => text.trim() !== "")
+          .join("\n\n");
+        
+        setTextInput(combinedText);
       }
       
       setIsOcrProcessing(false);
@@ -460,7 +508,10 @@ const TabAnswer = () => {
     
     // Check if we need to wait for OCR processing
     if (uploadedFiles.length > 0 && !ocrCompleted) {
-      setShowDialog({ show: true, text: "Bitte warten Sie, bis die OCR-Verarbeitung der PDF-Dateien abgeschlossen ist, bevor Sie eine Antwort generieren." });
+      setShowDialog({
+        show: true,
+        text: "Bitte warten Sie, bis die OCR-Verarbeitung der PDF-Dateien abgeschlossen ist, bevor Sie eine Antwort generieren.",
+      });
       return;
     }
 
@@ -480,6 +531,23 @@ const TabAnswer = () => {
       console.log("files = " + (uploadedFiles.length > 0 ? uploadedFiles.map((f) => f.name).join(", ") : "none"));
 
       // send Request
+      // Prepare files with their OCR text before sending
+      let filesToSend = undefined;
+      
+      if (uploadedFiles.length > 0) {
+        // Create a copy of the files and attach the OCR text to each file
+        filesToSend = uploadedFiles.map((file) => {
+          // Create a new object that includes the File properties
+          const fileWithText = Object.assign({}, file);
+          
+          // Add the text property with the OCR result for this file
+          // @ts-ignore - we're adding a custom property 'text' to the File object
+          fileWithText.text = documentTexts[file.name] || "";
+          
+          return fileWithText;
+        });
+      }
+      
       sendRequest(
         "/outlook/generate-email", 
         apiKey, 
@@ -490,7 +558,7 @@ const TabAnswer = () => {
         data.user_email, 
         data.recipients, 
         data.cc,
-        uploadedFiles.length > 0 ? uploadedFiles : undefined
+        filesToSend
       )
         .then(async (response) => {
           setShowSpinner(false);
@@ -614,7 +682,7 @@ const TabAnswer = () => {
               <div key={index} className={styles.filePreview}>
                 <FileText size={20} className={styles.fileIcon} />
                 <span className={styles.fileName}>{file.name}</span>
-                <Copy size={18} className={styles.copyButton} onClick={copyOcrText} aria-label="Copy OCR text" />
+                <Copy size={18} className={styles.copyButton} onClick={() => copyOcrText(index)} aria-label="Copy OCR text" />
                 <X size={18} className={styles.removeButton} onClick={() => handleRemoveFile(index)} aria-label="Remove file" />
               </div>
             ))}

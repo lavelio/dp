@@ -54,6 +54,7 @@ export async function sendRequest(
 
   // If files are provided, convert them to base64 and add them to the request
   if (files && files.length > 0) {
+    // Process files for base64 content
     const filePromises = files.map(async (file) => {
       const fileBase64 = await fileToBase64(file);
       return {
@@ -65,6 +66,25 @@ export async function sendRequest(
     
     const fileData = await Promise.all(filePromises);
     data.files = fileData;
+    
+    // Add documents with filename and text for the OutlookEmailDocument model
+    // This uses the documentTexts object that should be passed in from TabAnswer component
+    if (files.some((file) => Object.prototype.hasOwnProperty.call(file, "text"))) {
+      // Create documents array with the required format
+      const documents = files.map((file) => {
+        // @ts-ignore - we're adding a custom property 'text' to the File object
+        const text = file.text || "";
+        return {
+          filename: file.name,
+          text: text,
+        };
+      });
+      
+      // Only add documents if there's at least one with text
+      if (documents.some((doc) => doc.text)) {
+        data.documents = documents;
+      }
+    }
   }
 
   console.log("data = " + JSON.stringify(data, null, 2));
