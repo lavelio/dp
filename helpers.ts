@@ -54,25 +54,12 @@ export async function sendRequest(
 
   // If files are provided, convert them to base64 and add them to the request
   if (files && files.length > 0) {
-    // Process files for base64 content
-    const filePromises = files.map(async (file) => {
-      const fileBase64 = await fileToBase64(file);
-      return {
-        name: file.name,
-        type: file.type,
-        content: fileBase64,
-      };
-    });
-    
-    const fileData = await Promise.all(filePromises);
-    data.files = fileData;
-    
-    // Add documents with filename and text for the OutlookEmailDocument model
-    // This uses the documentTexts object that should be passed in from TabAnswer component
+    // Extract document texts first (if any)
+    let documents = [];
     if (files.some((file) => Object.prototype.hasOwnProperty.call(file, "text"))) {
       // Create documents array with the required format
-      const documents = files.map((file) => {
-        // @ts-ignore - we're adding a custom property 'text' to the File object
+      documents = files.map((file) => {
+        // @ts-ignore - we're accessing a custom property 'text' on the File object
         const text = file.text || "";
         return {
           filename: file.name,
@@ -85,6 +72,33 @@ export async function sendRequest(
         data.documents = documents;
       }
     }
+    
+    // Process files for base64 content - use the original File objects
+    // We need to use the original File objects because they are proper Blob objects
+    // that can be read by FileReader
+    const filePromises = files.map(async (file) => {
+      // Only process the file if it's a proper File/Blob object
+      // Check if it has the necessary methods of a Blob
+      if (file && typeof file === "object" && "slice" in file && "size" in file) {
+        const fileBase64 = await fileToBase64(file);
+        return {
+          name: file.name,
+          type: file.type,
+          content: fileBase64,
+        };
+      } else {
+        console.error("Not a valid File/Blob object:", file);
+        // Return a placeholder object to maintain array structure
+        return {
+          name: typeof file === "object" && file !== null && "name" in file ? file.name : "unknown",
+          type: typeof file === "object" && file !== null && "type" in file ? file.type : "application/octet-stream",
+          content: "",
+        };
+      }
+    });
+    
+    const fileData = await Promise.all(filePromises);
+    data.files = fileData;
   }
 
   console.log("data = " + JSON.stringify(data, null, 2));

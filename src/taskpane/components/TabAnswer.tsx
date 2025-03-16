@@ -535,10 +535,12 @@ const TabAnswer = () => {
       let filesToSend = undefined;
       
       if (uploadedFiles.length > 0) {
-        // Create a copy of the files and attach the OCR text to each file
+        // Instead of creating copies of the File objects (which breaks their Blob functionality),
+        // we'll use the original File objects and add the text as a separate property in the API call
         filesToSend = uploadedFiles.map((file) => {
-          // Create a new object that includes the File properties
-          const fileWithText = Object.assign({}, file);
+          // Create a custom object that extends the original File
+          // We'll use a technique that preserves the original File object
+          const fileWithText = file;
           
           // Add the text property with the OCR result for this file
           // @ts-ignore - we're adding a custom property 'text' to the File object
