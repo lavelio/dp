@@ -25,7 +25,7 @@ export async function sendRequest(
   user_email: string,
   recipients: string[] = [],
   cc: string[] = [],
-  files?: File[],
+  _files?: File[],
   documentTexts?: Array<{ filename: string; text: string }>
 ): Promise<any> {
   var url = Host + endpoint;
@@ -61,36 +61,13 @@ export async function sendRequest(
     }
   }
 
-  // If files are provided, convert them to base64 and add them to the request
-  if (files && files.length > 0) {
-    
-    // Process files for base64 content - use the original File objects
-    // We need to use the original File objects because they are proper Blob objects
-    // that can be read by FileReader
-    const filePromises = files.map(async (file) => {
-      // Only process the file if it's a proper File/Blob object
-      // Check if it has the necessary methods of a Blob
-      if (file && typeof file === "object" && "slice" in file && "size" in file) {
-        const fileBase64 = await fileToBase64(file);
-        return {
-          name: file.name,
-          type: file.type,
-          content: fileBase64,
-        };
-      } else {
-        console.error("Not a valid File/Blob object:", file);
-        // Return a placeholder object to maintain array structure
-        return {
-          name: typeof file === "object" && file !== null && "name" in file ? file.name : "unknown",
-          type: typeof file === "object" && file !== null && "type" in file ? file.type : "application/octet-stream",
-          content: "",
-        };
-      }
-    });
-    
-    const fileData = await Promise.all(filePromises);
-    data.files = fileData;
+  // If document texts are provided directly, use them instead of processing files
+  if (documentTexts && documentTexts.length > 0) {
+    data.documents = documentTexts.filter((doc) => doc.text.trim() !== "");
   }
+  
+  // We don't need to process files for base64 content anymore since we're using the document texts
+  // that were already extracted via OCR
 
   console.log("data = " + JSON.stringify(data, null, 2));
 

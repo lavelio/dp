@@ -531,22 +531,20 @@ const TabAnswer = () => {
       console.log("files = " + (uploadedFiles.length > 0 ? uploadedFiles.map((f) => f.name).join(", ") : "none"));
 
       // send Request
-      // Use the original files without modification
+      // We don't need to send the actual files anymore, just the extracted text
       let filesToSend = undefined;
       
-      if (uploadedFiles.length > 0) {
-        // Use the original files without any modifications
-        filesToSend = uploadedFiles;
-      }
-      
-      // Create a separate document texts object to pass to the API
+      // Create a document texts object to pass to the API
       const documentTextsList = [];
       if (uploadedFiles.length > 0) {
         for (const file of uploadedFiles) {
-          documentTextsList.push({
-            filename: file.name,
-            text: documentTexts[file.name] || "",
-          });
+          // Only add documents that have text content
+          if (documentTexts[file.name] && documentTexts[file.name].trim() !== "") {
+            documentTextsList.push({
+              filename: file.name,
+              text: documentTexts[file.name],
+            });
+          }
         }
       }
       
