@@ -44,9 +44,11 @@ export const TabPanes = () => {
           Antwort
         </Tab>
 
+        {/* Temporarily hidden Aktivität tab
         <Tab id="Activity" value="activity">
           Aktivität
         </Tab>
+        */}
 
         <Tab id="Settings" value="settings">
           Einstellungen
