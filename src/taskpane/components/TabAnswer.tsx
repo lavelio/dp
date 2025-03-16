@@ -52,6 +52,24 @@ const useStyles = makeStyles({
   spinner: {
     width: "75%",
   },
+  customLoadingOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999,
+  },
+  loadingText: {
+    marginTop: "10px",
+    fontSize: "14px",
+    fontWeight: 600,
+  },
   pencil: {
     marginLeft: "2px",
     marginRight: "4px",
@@ -133,6 +151,7 @@ const TabAnswer = () => {
 
   const [showDialog, setShowDialog] = React.useState<DialogInfo>({ show: false, text: "" }); // dialog form
   const [showSpinner, setShowSpinner] = React.useState<boolean>(false); // spinner
+  const [showCustomLoading, setShowCustomLoading] = React.useState<boolean>(false); // custom loading overlay
 
   const [answerValue, setAnswerValue] = React.useState<FieldInfo>({ current: "", state: "none" }); // answer field value
   // Store OCR results for each document separately
@@ -307,6 +326,9 @@ const TabAnswer = () => {
     const file = uploadedFiles[index];
     const fileName = file ? file.name : "";
     const textToCopy = fileName && documentTexts[fileName] ? documentTexts[fileName] : "";
+    
+    // Ensure custom loading is hidden when copying text
+    setShowCustomLoading(false);
     
     if (textToCopy && textToCopy.trim() !== "") {
       // Use document.execCommand as a fallback for Office Add-ins environment
@@ -494,6 +516,9 @@ const TabAnswer = () => {
     if (!ValidateField()) {
       return;
     }
+    
+    // Hide any previous custom loading overlay
+    setShowCustomLoading(false);
 
     // Save both answer value and text input
     localStorage.setItem("answer", answerValue.current); // save
@@ -518,6 +543,7 @@ const TabAnswer = () => {
     // get Mail Details
     getMailDetails((data) => {
       setShowSpinner(true);
+      setShowCustomLoading(true);
 
       var user_input: string = answerValue.current;
 
@@ -563,6 +589,7 @@ const TabAnswer = () => {
       )
         .then(async (response) => {
           setShowSpinner(false);
+          setShowCustomLoading(false);
 
           console.log("response = " + JSON.stringify(response, null, 2));
 
@@ -576,6 +603,7 @@ const TabAnswer = () => {
         })
         .catch((error) => {
           setShowSpinner(false);
+          setShowCustomLoading(false);
           setShowDialog({ show: true, text: `Anfragefehler: ${error}` }); // show error dialog
         });
     });
@@ -590,6 +618,13 @@ const TabAnswer = () => {
   return (
     <div className={styles.root} role="tabpanel" aria-labelledby="Settings">
       <Toaster />
+      
+      {showCustomLoading && (
+        <div className={styles.customLoadingOverlay}>
+          <Spinner size="large" />
+          <div className={styles.loadingText}>Antwort wird generiert...</div>
+        </div>
+      )}
       
       {(showSpinner || isUploading || isOcrProcessing) && (
         <Dialog defaultOpen={true}>
