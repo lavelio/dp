@@ -320,16 +320,16 @@ const TabAnswer = () => {
         // Show success toast
         dispatchToast(
           <Toast>
-            <ToastTitle media={<CheckCircle2 color="green" />}>Text copied to clipboard</ToastTitle>
+            <ToastTitle media={<CheckCircle2 color="green" />}>Text in die Zwischenablage kopiert</ToastTitle>
           </Toast>,
           { position: "top", timeout: 3000 }
         );
       } catch (error) {
         console.error("Error copying text to clipboard:", error);
-        setShowDialog({ show: true, text: `Error copying text: ${error.message}` });
+        setShowDialog({ show: true, text: `Fehler beim Kopieren des Textes: ${error.message}` });
       }
     } else {
-      setShowDialog({ show: true, text: "No OCR text available for this document" });
+      setShowDialog({ show: true, text: "Kein OCR-Text für dieses Dokument verfügbar" });
     }
   };
 
@@ -576,7 +576,7 @@ const TabAnswer = () => {
         })
         .catch((error) => {
           setShowSpinner(false);
-          setShowDialog({ show: true, text: `Request error: ${error}` }); // show error dialog
+          setShowDialog({ show: true, text: `Anfragefehler: ${error}` }); // show error dialog
         });
     });
   };
@@ -602,7 +602,7 @@ const TabAnswer = () => {
                   ? "Dateien werden hochgeladen..."
                   : isOcrProcessing
                     ? "OCR-Verarbeitung läuft..."
-                    : "Loading..."
+                    : "Wird geladen..."
               }
             />
           </DialogSurface>
@@ -639,6 +639,7 @@ const TabAnswer = () => {
             size="large"
             resize="vertical"
             onChange={handleChangeValue}
+            lang="de"
           />
         </Field>
 
