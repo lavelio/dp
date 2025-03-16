@@ -25,7 +25,8 @@ export async function sendRequest(
   user_email: string,
   recipients: string[] = [],
   cc: string[] = [],
-  files?: File[]
+  files?: File[],
+  documentTexts?: Array<{ filename: string; text: string }>
 ): Promise<any> {
   var url = Host + endpoint;
   console.log(` sendRequest to: ${url}`);
@@ -52,26 +53,16 @@ export async function sendRequest(
     user_email: user_email,
   };
 
+  // If document texts are provided, add them to the request
+  if (documentTexts && documentTexts.length > 0) {
+    // Only add documents if there's at least one with text
+    if (documentTexts.some((doc) => doc.text)) {
+      data.documents = documentTexts;
+    }
+  }
+
   // If files are provided, convert them to base64 and add them to the request
   if (files && files.length > 0) {
-    // Extract document texts first (if any)
-    let documents = [];
-    if (files.some((file) => Object.prototype.hasOwnProperty.call(file, "text"))) {
-      // Create documents array with the required format
-      documents = files.map((file) => {
-        // @ts-ignore - we're accessing a custom property 'text' on the File object
-        const text = file.text || "";
-        return {
-          filename: file.name,
-          text: text,
-        };
-      });
-      
-      // Only add documents if there's at least one with text
-      if (documents.some((doc) => doc.text)) {
-        data.documents = documents;
-      }
-    }
     
     // Process files for base64 content - use the original File objects
     // We need to use the original File objects because they are proper Blob objects

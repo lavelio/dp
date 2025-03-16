@@ -531,23 +531,23 @@ const TabAnswer = () => {
       console.log("files = " + (uploadedFiles.length > 0 ? uploadedFiles.map((f) => f.name).join(", ") : "none"));
 
       // send Request
-      // Prepare files with their OCR text before sending
+      // Use the original files without modification
       let filesToSend = undefined;
       
       if (uploadedFiles.length > 0) {
-        // Instead of creating copies of the File objects (which breaks their Blob functionality),
-        // we'll use the original File objects and add the text as a separate property in the API call
-        filesToSend = uploadedFiles.map((file) => {
-          // Create a custom object that extends the original File
-          // We'll use a technique that preserves the original File object
-          const fileWithText = file;
-          
-          // Add the text property with the OCR result for this file
-          // @ts-ignore - we're adding a custom property 'text' to the File object
-          fileWithText.text = documentTexts[file.name] || "";
-          
-          return fileWithText;
-        });
+        // Use the original files without any modifications
+        filesToSend = uploadedFiles;
+      }
+      
+      // Create a separate document texts object to pass to the API
+      const documentTextsList = [];
+      if (uploadedFiles.length > 0) {
+        for (const file of uploadedFiles) {
+          documentTextsList.push({
+            filename: file.name,
+            text: documentTexts[file.name] || "",
+          });
+        }
       }
       
       sendRequest(
@@ -560,7 +560,8 @@ const TabAnswer = () => {
         data.user_email, 
         data.recipients, 
         data.cc,
-        filesToSend
+        filesToSend,
+        documentTextsList
       )
         .then(async (response) => {
           setShowSpinner(false);
