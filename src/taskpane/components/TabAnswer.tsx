@@ -16,12 +16,14 @@ import {
   Toast,
   ToastTitle,
   useToastController,
-  Toaster
+  Toaster,
+  Checkbox,
+  Tooltip
 } from "@fluentui/react-components";
 import DialogForm from "./DialogForm";
 import { DialogInfo, FieldInfo, sendRequest } from "../../../helpers";
 import { getMailDetails, insertText } from "../taskpane";
-import { Pencil, FileText, X, Upload, CheckCircle2, Copy } from "lucide-react";
+import { Pencil, FileText, X, Upload, CheckCircle2, Copy, Mail, Settings } from "lucide-react";
 
 /* global console, HTMLTextAreaElement, HTMLDivElement, localStorage, File, fetch, document */
 
@@ -34,12 +36,17 @@ const useStyles = makeStyles({
   root: {
     flexDirection: "column",
     display: "flex",
-    paddingLeft: "10px",
-    paddingRight: "10px",
+    padding: "0 10px",
+    width: "100%",
+    boxSizing: "border-box",
   },
   answer_dialog: {
     flexDirection: "column",
     display: "flex",
+    width: "100%",
+    boxSizing: "border-box",
+    maxWidth: "100%",
+    overflow: "hidden",
   },
   dialog_field: {
     fontWeight: 600,
@@ -64,6 +71,62 @@ const useStyles = makeStyles({
     alignItems: "center",
     justifyContent: "center",
     zIndex: 9999,
+  },
+  toggleContainer: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    marginBottom: "15px",
+    padding: "0",
+    width: "100%",
+    boxSizing: "border-box",
+    maxWidth: "100%",
+    overflow: "hidden",
+  },
+  toggleGroupContainer: {
+    display: "flex",
+    width: "100%",
+    boxSizing: "border-box",
+    overflow: "hidden",
+  },
+  toggleButton: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "10px 15px",
+    border: "1px solid #e0e0e0",
+    backgroundColor: "#f5f5f5",
+    cursor: "pointer",
+    flex: 1,
+    transition: "all 0.2s ease",
+    fontWeight: 400,
+    fontSize: "14px",
+    userSelect: "none",
+  },
+  toggleButtonLeft: {
+    borderRadius: "4px 0 0 4px",
+    borderRight: "none",
+  },
+  toggleButtonRight: {
+    borderRadius: "0 4px 4px 0",
+  },
+  toggleButtonActive: {
+    backgroundColor: "#006d5c",
+    color: "white",
+    fontWeight: 600,
+  },
+  toggleButtonInactive: {
+    opacity: 0.9,
+  },
+  toggleIcon: {
+    marginRight: "8px",
+    verticalAlign: "middle",
+  },
+  checkboxContainer: {
+    marginTop: "5px",
+    marginBottom: "15px",
+    display: "flex",
+    alignItems: "center",
   },
   loadingText: {
     marginTop: "10px",
@@ -165,6 +228,11 @@ const TabAnswer = () => {
   const [ocrCompleted, setOcrCompleted] = React.useState<boolean>(false);
   // Track file names for OCR processing - used in the processOCR function
   const [fileNames, setFileNames] = React.useState<string[]>([]);
+  
+  // New state for the generate type toggle (email or content)
+  const [generateType, setGenerateType] = React.useState<string>("email"); // Default to "email"
+  // New state for the include email checkbox
+  const [includeEmail, setIncludeEmail] = React.useState<boolean>(true); // Default to true
 
   const dropZoneRef = React.useRef<HTMLDivElement>(null);
   const { dispatchToast } = useToastController();
@@ -511,6 +579,16 @@ const TabAnswer = () => {
     }
   }, [uploadedFiles, isUploading, isOcrProcessing, ocrCompleted]);
 
+  // Handle toggle change between generate email and generate content
+  const handleGenerateTypeChange = (value: string) => {
+    setGenerateType(value as "email" | "content");
+  };
+
+  // Handle checkbox change for including email information
+  const handleIncludeEmailChange = (_: React.FormEvent<HTMLInputElement>, data: { checked: boolean }) => {
+    setIncludeEmail(data.checked);
+  };
+
   // button - get full answer
   const onButtonSaveClick = () => {
     if (!ValidateField()) {
@@ -555,6 +633,8 @@ const TabAnswer = () => {
       console.log("user_input = " + user_input);
       console.log("user_email = " + data.user_email);
       console.log("files = " + (uploadedFiles.length > 0 ? uploadedFiles.map((f) => f.name).join(", ") : "none"));
+      console.log("generateType = " + generateType);
+      console.log("includeEmail = " + includeEmail);
 
       // send Request
       // We don't need to send the actual files anymore, just the extracted text
@@ -575,7 +655,7 @@ const TabAnswer = () => {
       }
       
       sendRequest(
-        "/outlook/generate-email", 
+        "", // Empty string as endpoint will be determined in sendRequest based on generateType
         apiKey, 
         data.subject, 
         data.sender, 
@@ -585,7 +665,9 @@ const TabAnswer = () => {
         data.recipients, 
         data.cc,
         filesToSend,
-        documentTextsList
+        documentTextsList,
+        generateType,
+        includeEmail
       )
         .then(async (response) => {
           setShowSpinner(false);
@@ -599,7 +681,12 @@ const TabAnswer = () => {
             return;
           }
 
-          insertText(response.email_text); // Write text to the cursor point in the compose surface.
+          // Handle different response formats based on the generate type
+          if (generateType === "email") {
+            insertText(response.email_text); // Write email text to the cursor point
+          } else {
+            insertText(response.content_text); // Write content text to the cursor point
+          }
         })
         .catch((error) => {
           setShowSpinner(false);
@@ -656,11 +743,55 @@ const TabAnswer = () => {
       )}
 
       <div className={styles.answer_dialog}>
+        <div style={{ display: "flex", alignItems: "center", margin: "10px 0" }}>
+          <Settings size={18} style={{ marginRight: "4px" }} />
+          <span style={{ fontWeight: 500, fontSize: "14px" }}>Modus</span>
+        </div>
+        <div style={{ display: "flex", width: "100%", marginBottom: "15px" }}>
+          <Tooltip content="Generiert eine E-Mail-Antwort basierend auf Ihrem Input, E-Mail Inhalt und Dokumenten." relationship="label">
+            <div
+              className={`${styles.toggleButton} ${styles.toggleButtonLeft} ${generateType === "email" ? styles.toggleButtonActive : styles.toggleButtonInactive}`}
+              onClick={() => handleGenerateTypeChange("email")}
+            >
+              <Mail
+                size={18}
+                color={generateType === "email" ? "white" : "#006d5c"}
+                className={styles.toggleIcon}
+              />
+              E-Mail Antwort
+            </div>
+          </Tooltip>
+          <Tooltip content="Generiert freien Text mit KI-Unterstützung basierend auf Ihren Anweisungen, Dokumenten und (wenn gewünscht) E-Mail Inhalt." relationship="label">
+            <div
+              className={`${styles.toggleButton} ${styles.toggleButtonRight} ${generateType === "content" ? styles.toggleButtonActive : styles.toggleButtonInactive}`}
+              onClick={() => handleGenerateTypeChange("content")}
+            >
+              <FileText
+                size={18}
+                color={generateType === "content" ? "white" : "#006d5c"}
+                className={styles.toggleIcon}
+              />
+              Freier Text
+            </div>
+          </Tooltip>
+        </div>
+        
+        {generateType === "content" && (
+          <div className={styles.checkboxContainer}>
+            <Checkbox
+              label="E-Mail-Informationen einbeziehen"
+              checked={includeEmail}
+              onChange={handleIncludeEmailChange}
+            />
+          </div>
+        )}
+        
         <Field
           className={styles.dialog_field}
           label={
             <>
-              <Pencil size={18} className={styles.pencil} /> Nutzer Input
+              <Pencil size={18} className={styles.pencil} />
+              {generateType === "email" ? "Nutzer Input" : "Nutzer Input (+ Anweisungen an KI)"}
             </>
           }
           validationState={answerValue.state}
@@ -670,7 +801,7 @@ const TabAnswer = () => {
           <Textarea
             value={answerValue.current}
             rows={10}
-            placeholder="Kurzen Text eingeben.."
+            placeholder={generateType === "email" ? "Kurzen Text eingeben.." : "Kurzen Text und Anweisungen eingeben.."}
             size="large"
             resize="vertical"
             onChange={handleChangeValue}
@@ -727,7 +858,7 @@ const TabAnswer = () => {
         )}
 
         <Button className={styles.button_send} appearance="primary" onClick={onButtonSaveClick}>
-          Antwort generieren
+          {generateType === "email" ? "Antwort generieren" : "Text generieren"}
         </Button>
       </div>
     </div>
