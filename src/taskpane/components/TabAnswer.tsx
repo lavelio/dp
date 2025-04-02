@@ -748,7 +748,7 @@ const TabAnswer = () => {
           <span style={{ fontWeight: 500, fontSize: "14px" }}>Modus</span>
         </div>
         <div style={{ display: "flex", width: "100%", marginBottom: "15px" }}>
-          <Tooltip content="Generiert eine E-Mail-Antwort basierend auf Ihrem Input, E-Mail Inhalt und Dokumenten." relationship="label">
+          <Tooltip content="Erstellt eine formelle E-Mail-Antwort mit Anrede und Grußformel basierend auf Ihrem Input und den vorliegenden Informationen." relationship="label">
             <div
               className={`${styles.toggleButton} ${styles.toggleButtonLeft} ${generateType === "email" ? styles.toggleButtonActive : styles.toggleButtonInactive}`}
               onClick={() => handleGenerateTypeChange("email")}
@@ -761,7 +761,7 @@ const TabAnswer = () => {
               E-Mail Antwort
             </div>
           </Tooltip>
-          <Tooltip content="Generiert freien Text mit KI-Unterstützung basierend auf Ihren Anweisungen, Dokumenten und (wenn gewünscht) E-Mail Inhalt." relationship="label">
+          <Tooltip content="Erzeugt flexiblen Text nach Ihren Vorgaben - mit oder ohne Berücksichtigung des E-Mail-Kontexts." relationship="label">
             <div
               className={`${styles.toggleButton} ${styles.toggleButtonRight} ${generateType === "content" ? styles.toggleButtonActive : styles.toggleButtonInactive}`}
               onClick={() => handleGenerateTypeChange("content")}
