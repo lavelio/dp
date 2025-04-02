@@ -92,3 +92,49 @@ The add-in is deployed to a VPS with the following assets:
 ## Version Information
 Current version: 3.1.109.0
 Default locale: de-DE (German)
+
+## Development vs. Production Workflow
+
+### Development Environment
+When developing and testing locally with Parallels, use the following workflow:
+
+1. **Development Manifest**
+   - Use `dev-manifest.xml` which points to `https://localhost:3000/`
+   - This allows testing changes locally before deploying to production
+
+2. **Local Development Server**
+   - Run the development server: `npm run dev-server`
+   - This starts a local server at port 3001 (configured in package.json)
+
+3. **Sideloading in Outlook (Parallels)**
+   - In Windows (Parallels), clear the Office Add-in cache:
+     ```
+     rmdir /s /q "%LOCALAPPDATA%\Microsoft\Office\16.0\Wef\"
+     ```
+   - Sideload the add-in using the dev-manifest.xml:
+     ```
+     npx office-addin-debugging start dev-manifest.xml
+     ```
+   - Alternatively, manually sideload the add-in in Outlook by selecting the dev-manifest.xml file
+
+4. **Troubleshooting Cache Issues**
+   - If changes aren't appearing, clear the Office cache
+   - Restart Outlook completely
+   - Verify the local server is running
+   - Check browser developer tools for any console errors
+
+### Production Deployment
+When ready to deploy to production:
+
+1. **Build for Production**
+   - Run: `npm run build`
+   - This creates optimized files in the `/dist` directory
+   - The manifest is automatically transformed to use production URLs
+
+2. **Deployment**
+   - Upload the contents of `/dist` to the production server
+   - No changes needed for existing users - they'll get the new version automatically
+
+3. **Version Management**
+   - Update version number in `manifest.xml` for major releases
+   - Document changes in release notes
