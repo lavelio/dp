@@ -11,14 +11,14 @@
   <DefaultLocale>de-DE</DefaultLocale>
   <DisplayName DefaultValue="FG Digitales Postfach (Dev)"/>
   <Description DefaultValue="Das digitale Postfach für Fröhlich &amp; Gottas"/>
-  <IconUrl DefaultValue="https://localhost:3000/assets/logo_64.png"/>
-  <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/logo_128.png"/>
-  <SupportUrl DefaultValue="https://localhost:3000/help.html"/>
+  <IconUrl DefaultValue="https://localhost:3001/assets/logo_64.png"/>
+  <HighResolutionIconUrl DefaultValue="https://localhost:3001/assets/logo_128.png"/>
+  <SupportUrl DefaultValue="https://localhost:3001/help.html"/>
 
   <AppDomains>
     <AppDomain>https://lavelio.github.io</AppDomain>
     <AppDomain>https://fg.server.lavel.io</AppDomain>
-    <AppDomain>https://localhost:3000</AppDomain>
+    <AppDomain>https://localhost:3001</AppDomain>
   </AppDomains>
 
   <Hosts>
@@ -34,7 +34,7 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://localhost:3000/taskpane.html"/>
+        <SourceLocation DefaultValue="https://localhost:3001/taskpane.html"/>
         <RequestedHeight>250</RequestedHeight>
       </DesktopSettings>
     </Form>
@@ -118,14 +118,14 @@
 
       <Resources>
         <bt:Images>
-          <bt:Image id="icon_magik_16" DefaultValue="https://localhost:3000/assets/icon_magik_16.png"/>
-          <bt:Image id="icon_magik_32" DefaultValue="https://localhost:3000/assets/icon_magik_32.png"/>
-          <bt:Image id="icon_magik_80" DefaultValue="https://localhost:3000/assets/icon_magik_80.png"/>
+          <bt:Image id="icon_magik_16" DefaultValue="https://localhost:3001/assets/icon_magik_16.png"/>
+          <bt:Image id="icon_magik_32" DefaultValue="https://localhost:3001/assets/icon_magik_32.png"/>
+          <bt:Image id="icon_magik_80" DefaultValue="https://localhost:3001/assets/icon_magik_80.png"/>
         </bt:Images>
 
         <bt:Urls>
-          <bt:Url id="Commands.Url" DefaultValue="https://localhost:3000/commands.html"/>
-          <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:3000/taskpane.html"/>
+          <bt:Url id="Commands.Url" DefaultValue="https://localhost:3001/commands.html"/>
+          <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:3001/taskpane.html"/>
           <!-- <bt:Url id="Taskpane2.Url" DefaultValue="https://localhost:3000/answer_form.html"/> -->
         </bt:Urls>
 

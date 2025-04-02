@@ -99,7 +99,7 @@ Default locale: de-DE (German)
 When developing and testing locally with Parallels, use the following workflow:
 
 1. **Development Manifest**
-   - Use `dev-manifest.xml` which points to `https://localhost:3000/`
+   - Use `dev-manifest.xml` which points to `https://localhost:3001/`
    - This allows testing changes locally before deploying to production
 
 2. **Local Development Server**
