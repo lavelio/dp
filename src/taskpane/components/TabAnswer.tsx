@@ -677,7 +677,24 @@ const TabAnswer = () => {
 
           // show error dialog
           if (response.status != "success") {
-            setShowDialog({ show: true, text: response.detail });
+            // Format the error message properly as a string
+            let errorMessage = "Ein Fehler ist aufgetreten.";
+            if (response.detail) {
+              if (typeof response.detail === 'string') {
+                errorMessage = response.detail;
+              } else if (Array.isArray(response.detail)) {
+                // Format array of errors
+                errorMessage = response.detail.map(err => {
+                  if (typeof err === 'string') return err;
+                  if (err.msg) return err.msg;
+                  return JSON.stringify(err);
+                }).join('\n');
+              } else {
+                // Convert object to string
+                errorMessage = JSON.stringify(response.detail);
+              }
+            }
+            setShowDialog({ show: true, text: errorMessage });
             return;
           }
 

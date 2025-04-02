@@ -37,11 +37,11 @@ export const sendRequest = async (
 
     // Create the request body
     const requestBody: any = {
-      subject: subject,
       user_input: user_input,
       user_email: user_email,
       messages: [
         {
+          subject: subject, // Include subject in the message object
           sender: sender,
           body: body,
           recipients: recipients,
