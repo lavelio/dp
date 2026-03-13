@@ -129,6 +129,9 @@ module.exports = async (env, options) => {
       new webpack.ProvidePlugin({
         Promise: ["es6-promise", "Promise"],
       }),
+      new webpack.DefinePlugin({
+        APP_VERSION: JSON.stringify(process.env.npm_package_version || "dev"),
+      }),
     ],
     devServer: {
       hot: true,

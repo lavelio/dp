@@ -2,6 +2,9 @@ import * as React from "react";
 import { Button, Field, Input, makeStyles } from "@fluentui/react-components";
 import DialogForm from "./DialogForm";
 import { DialogInfo, FieldInfo } from "../../../helpers";
+import { ApiKeyStorage } from "../../utils/apiKeyStorage";
+
+declare const APP_VERSION: string;
 
 /* global HTMLInputElement, localStorage */
 
@@ -24,6 +27,11 @@ const useStyles = makeStyles({
     width: "100%",
     marginBottom: "10px",
   },
+  version: {
+    color: "#666666",
+    fontSize: "12px",
+    marginTop: "12px",
+  },
 });
 
 const TabSettings = () => {
@@ -31,11 +39,18 @@ const TabSettings = () => {
 
   const [showDialog, setShowDialog] = React.useState<DialogInfo>({ show: false, text: "" }); // dialog form
   const [keyValue, setKeyValue] = React.useState<FieldInfo>({ current: "", state: "none" }); // apiKey field value
+  const [isLoading, setIsLoading] = React.useState<boolean>(false); // loading state for async operations
 
   React.useEffect(() => {
     const getStartData = async () => {
-      var apiKey = localStorage.getItem("apiKey"); // load apiKey from storage
-      setKeyValue({ current: apiKey, state: "none" });
+      try {
+        // Load apiKey from roamingSettings (with fallback to localStorage)
+        var apiKey = await ApiKeyStorage.get();
+        setKeyValue({ current: apiKey, state: "none" });
+      } catch (error) {
+        console.error("Error loading API key:", error);
+        setShowDialog({ show: true, text: "Fehler beim Laden der Einstellungen" });
+      }
     };
 
     getStartData(); // get Start Data
@@ -55,14 +70,23 @@ const TabSettings = () => {
   };
 
   // button - save api key
-  const onButtonSaveClick = () => {
+  const onButtonSaveClick = async () => {
     if (!ValidateField()) {
       return;
     }
 
-    localStorage.setItem("apiKey", keyValue.current); // save
+    setIsLoading(true);
 
-    setShowDialog({ show: true, text: "Änderungen gespeichert" });
+    try {
+      // Save to encrypted roamingSettings (with localStorage backup)
+      await ApiKeyStorage.set(keyValue.current);
+      setShowDialog({ show: true, text: "Änderungen gespeichert" });
+    } catch (error) {
+      console.error("Error saving API key:", error);
+      setShowDialog({ show: true, text: "Fehler beim Speichern: " + error.message });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // result dialog event
@@ -87,16 +111,18 @@ const TabSettings = () => {
         <Field
           className={styles.dialog_field}
           label="API-Schlüsselwert"
-          validationState={keyValue.state}
+          validationState={keyValue.state as "none" | "error" | "warning" | "success"}
           validationMessage="Kopieren Sie Ihren API-Schlüsselwert und fügen Sie ihn ein"
           required
         >
           <Input value={keyValue.current} placeholder="z.b. outlookapi47eda17f38081e..." onChange={handleChangeValue} />
         </Field>
 
-        <Button className={styles.dialog_add} appearance="primary" onClick={onButtonSaveClick}>
-          Speichern
+        <Button className={styles.dialog_add} appearance="primary" onClick={onButtonSaveClick} disabled={isLoading}>
+          {isLoading ? "Wird gespeichert..." : "Speichern"}
         </Button>
+
+        <div className={styles.version}>Version: {APP_VERSION}</div>
       </div>
     </div>
   );

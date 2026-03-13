@@ -22,6 +22,7 @@ import DialogForm from "./DialogForm";
 import { DialogInfo } from "../../../helpers";
 import { getMailDetails } from "../taskpane";
 import { CheckCircle2, ArrowRight } from "lucide-react";
+import { ApiKeyStorage } from "../../utils/apiKeyStorage";
 
 /* global console, localStorage, fetch, Office */
 
@@ -155,24 +156,24 @@ const TabActivity = () => {
     const getSuggestions = () => {
       try {
         setShowSpinner(true);
-        
+
         // Get email details using callback
-        getMailDetails((mailDetails) => {
+        getMailDetails(async (mailDetails) => {
           if (!mailDetails) {
-            setShowDialog({ 
-              show: true, 
-              text: "Keine E-Mail ausgewählt. Bitte wählen Sie eine E-Mail aus, um fortzufahren." 
+            setShowDialog({
+              show: true,
+              text: "Keine E-Mail ausgewählt. Bitte wählen Sie eine E-Mail aus, um fortzufahren."
             });
             setShowSpinner(false);
             return;
           }
 
-        // Get API key from localStorage
-        const apiKey = localStorage.getItem("apiKey");
+        // Get API key from storage
+        const apiKey = await ApiKeyStorage.get();
         if (!apiKey) {
-          setShowDialog({ 
-            show: true, 
-            text: "Kein API-Schlüssel gefunden. Bitte geben Sie einen API-Schlüssel in den Einstellungen ein." 
+          setShowDialog({
+            show: true,
+            text: "Kein API-Schlüssel gefunden. Bitte geben Sie einen API-Schlüssel in den Einstellungen ein."
           });
           setShowSpinner(false);
           return;
@@ -255,24 +256,24 @@ const TabActivity = () => {
   const createActivity = () => {
     try {
       setShowCustomLoading(true);
-      
+
       // Get email details using callback
-      getMailDetails((mailDetails) => {
+      getMailDetails(async (mailDetails) => {
         if (!mailDetails) {
-          setShowDialog({ 
-            show: true, 
-            text: "Keine E-Mail ausgewählt. Bitte wählen Sie eine E-Mail aus, um fortzufahren." 
+          setShowDialog({
+            show: true,
+            text: "Keine E-Mail ausgewählt. Bitte wählen Sie eine E-Mail aus, um fortzufahren."
           });
           setShowCustomLoading(false);
           return;
         }
 
-      // Get API key from localStorage
-      const apiKey = localStorage.getItem("apiKey");
+      // Get API key from storage
+      const apiKey = await ApiKeyStorage.get();
       if (!apiKey) {
-        setShowDialog({ 
-          show: true, 
-          text: "Kein API-Schlüssel gefunden. Bitte geben Sie einen API-Schlüssel in den Einstellungen ein." 
+        setShowDialog({
+          show: true,
+          text: "Kein API-Schlüssel gefunden. Bitte geben Sie einen API-Schlüssel in den Einstellungen ein."
         });
         setShowCustomLoading(false);
         return;

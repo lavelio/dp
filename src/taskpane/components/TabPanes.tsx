@@ -4,9 +4,7 @@ import type { SelectTabData, SelectTabEvent, TabValue } from "@fluentui/react-co
 import TabAnswer from "./TabAnswer";
 import TabSettings from "./TabSettings";
 import TabActivity from "./TabActivity";
-
-
-/* global localStorage */
+import { ApiKeyStorage } from "../../utils/apiKeyStorage";
 
 const useStyles = makeStyles({
   root: {
@@ -28,14 +26,39 @@ const useStyles = makeStyles({
 
 export const TabPanes = () => {
   const styles = useStyles();
+  const [selectedTab, setSelectedTab] = React.useState<TabValue | null>(null);
 
-  var apiKey = localStorage.getItem("apiKey"); // load apiKey from storage
+  React.useEffect(() => {
+    let isMounted = true;
 
-  const [selectedTab, setSelectedTab] = React.useState<TabValue>(apiKey == "" ? "settings" : "answer");
+    const loadInitialTab = async () => {
+      try {
+        const hasApiKey = await ApiKeyStorage.has();
+        if (isMounted) {
+          setSelectedTab(hasApiKey ? "answer" : "settings");
+        }
+      } catch (error) {
+        console.error("Error loading initial tab state:", error);
+        if (isMounted) {
+          setSelectedTab("settings");
+        }
+      }
+    };
+
+    loadInitialTab();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const onTabSelect = (_event: SelectTabEvent, data: SelectTabData) => {
     setSelectedTab(data.value);
   };
+
+  if (selectedTab === null) {
+    return <div className={styles.root} />;
+  }
 
   return (
     <div className={styles.root}>

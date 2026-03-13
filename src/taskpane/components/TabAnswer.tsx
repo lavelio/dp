@@ -24,6 +24,7 @@ import DialogForm from "./DialogForm";
 import { DialogInfo, FieldInfo, sendRequest } from "../../../helpers";
 import { getMailDetails, insertText } from "../taskpane";
 import { Pencil, FileText, X, Upload, CheckCircle2, Copy, Mail, Settings } from "lucide-react";
+import { ApiKeyStorage } from "../../utils/apiKeyStorage";
 
 /* global console, HTMLTextAreaElement, HTMLDivElement, localStorage, File, fetch, document */
 
@@ -433,23 +434,26 @@ const TabAnswer = () => {
   // Upload files to S3 using presigned URLs and trigger OCR processing
   const uploadFilesToS3 = async () => {
     if (uploadedFiles.length === 0) return;
-    
+
     setIsUploading(true);
     setIsOcrProcessing(true);
-    
+
     try {
+      // Get API key from storage
+      const apiKey = await ApiKeyStorage.get();
+
       // Upload each file to S3 using presigned URLs
       const newFileNames = [];
       const newFileUuids = [];
       const newFileTypes = [];
-      
+
       for (const file of uploadedFiles) {
         // Get presigned URL from the server
         const presignedUrlResponse = await fetch(PRESIGNED_URL_ENDPOINT, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: localStorage.getItem("apiKey") || ""
+            Authorization: apiKey || ""
           },
           body: JSON.stringify({
             filename: file.name,
@@ -498,8 +502,9 @@ const TabAnswer = () => {
   // Trigger OCR processing on the backend
   const triggerOcrProcessing = async (fileNames: string[]) => {
     try {
-      const apiKey: string = localStorage.getItem("apiKey") || "";
-      
+      // Get API key from storage
+      const apiKey: string = await ApiKeyStorage.get();
+
       if (apiKey === "") {
         setShowDialog({ show: true, text: "API-Schlüssel nicht angegeben" });
         setIsOcrProcessing(false);
@@ -590,11 +595,11 @@ const TabAnswer = () => {
   };
 
   // button - get full answer
-  const onButtonSaveClick = () => {
+  const onButtonSaveClick = async () => {
     if (!ValidateField()) {
       return;
     }
-    
+
     // Hide any previous custom loading overlay
     setShowCustomLoading(false);
 
@@ -602,7 +607,8 @@ const TabAnswer = () => {
     localStorage.setItem("answer", answerValue.current); // save
     setTextInput(answerValue.current); // Ensure textInput is synced
 
-    var apiKey: string = localStorage.getItem("apiKey"); // load apiKey from storage
+    // Get API key from storage
+    var apiKey: string = await ApiKeyStorage.get();
 
     if (apiKey == "") {
       setShowDialog({ show: true, text: "API-Schlüssel nicht angegeben" });
