@@ -5,8 +5,10 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
 const TerserPlugin = require('terser-webpack-plugin');
+const pkg = require("./package.json");
 
-const urlDev = "https://localhost:3000/";
+const devPort = (pkg.config && pkg.config.dev_server_port) || 3000;
+const urlDev = `https://localhost:${devPort}/`;
 // Update this to your VPS domain
 const urlProd = "https://lavelio.github.io/dp/";
 
@@ -23,7 +25,6 @@ module.exports = async (env, options) => {
       polyfill: ["core-js/stable", "regenerator-runtime/runtime"],
       vendor: ["react", "react-dom", "core-js"],
       taskpane: ["./src/taskpane/index.tsx", "./src/taskpane/taskpane.html"],
-      answer_form: ["./src/answer_form/index.tsx", "./src/answer_form/answer_form.html"],
       commands: "./src/commands/commands.ts",
     },
     output: {
@@ -97,11 +98,6 @@ module.exports = async (env, options) => {
         template: "./src/taskpane/taskpane.html",
         chunks: ["polyfill", "vendor", "taskpane"],
       }),
-      new HtmlWebpackPlugin({
-        filename: "answer_form.html",
-        template: "./src/answer_form/answer_form.html",
-        chunks: ["polyfill", "vendor", "answer_form"],
-      }),
       new CopyWebpackPlugin({
         patterns: [
           {
@@ -142,7 +138,7 @@ module.exports = async (env, options) => {
         type: "https",
         options: env.WEBPACK_BUILD || options.https !== undefined ? options.https : await getHttpsOptions(),
       },
-      port: process.env.npm_package_config_dev_server_port || 3000,
+      port: process.env.npm_package_config_dev_server_port || devPort,
     },
   };
 

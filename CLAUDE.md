@@ -78,7 +78,7 @@ Uses Microsoft Fluent UI (`@fluentui/react-components`) as the primary UI framew
 - Minimum Mailbox API version: 1.3
 - Default locale: de-DE (German)
 - Add-in has `ReadWriteItem` permission
-- Connects to two external domains: `lavelio.github.io` and `fg.server.lavel.io`
+- Connects to two external domains: `lavelio.github.io` and `core.fg-hausverwaltung.de` (formerly `fg.server.lavel.io`, migrated 2026-05)
 - Port configuration: Development server port is configurable via `package.json` config section (currently 3001)
 
 ## File Structure

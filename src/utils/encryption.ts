@@ -68,7 +68,7 @@ export class SimpleEncryption {
       combined.set(new Uint8Array(encrypted), iv.length);
 
       // Convert to base64 and add prefix
-      return this.KEY_PREFIX + btoa(String.fromCharCode(...combined));
+      return this.KEY_PREFIX + btoa(String.fromCharCode(...Array.from(combined)));
     } catch (error) {
       console.error("Encryption error:", error);
       // Return original text if encryption fails (graceful degradation)

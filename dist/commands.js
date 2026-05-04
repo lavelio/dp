@@ -1,2 +1,2 @@
-(self.webpackChunkoffice_addin_taskpane_react=self.webpackChunkoffice_addin_taskpane_react||[]).push([[217],{47351:function(){Office.onReady((()=>{})),Office.actions.associate("action",(function(a){Office.context.ui.displayDialogAsync("https://localhost:3000/answer_form.html",{height:50,width:50,displayInIframe:!1},(a=>{a.status===Office.AsyncResultStatus.Failed||a.value})),a.completed()}))}},function(a){var e;e=47351,a(a.s=e)}]);
+(self.webpackChunkoffice_addin_taskpane_react=self.webpackChunkoffice_addin_taskpane_react||[]).push([[217],{47351:function(){Office.onReady((()=>{}))}},function(a){var e;e=47351,a(a.s=e)}]);
 //# sourceMappingURL=commands.js.map

@@ -25,13 +25,14 @@ import { DialogInfo, FieldInfo, sendRequest } from "../../../helpers";
 import { getMailDetails, insertText } from "../taskpane";
 import { Pencil, FileText, X, Upload, CheckCircle2, Copy, Mail, Settings } from "lucide-react";
 import { ApiKeyStorage } from "../../utils/apiKeyStorage";
+import { API_BASE_URL } from "../../config";
 
 /* global console, HTMLTextAreaElement, HTMLDivElement, localStorage, File, fetch, document */
 
 // API Configuration
 const BUCKET_NAME = "fg-chat-ocr";
-const OCR_API_ENDPOINT = "https://fg.server.lavel.io/outlook/ocr-detect";
-const PRESIGNED_URL_ENDPOINT = "https://fg.server.lavel.io/generate_presigned_upload_url";
+const OCR_API_ENDPOINT = `${API_BASE_URL}/outlook/ocr-detect`;
+const PRESIGNED_URL_ENDPOINT = `${API_BASE_URL}/generate_presigned_upload_url`;
 
 const useStyles = makeStyles({
   root: {

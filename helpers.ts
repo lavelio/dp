@@ -1,5 +1,7 @@
 /* global console, fetch */
 
+import { API_BASE_URL } from "./src/config";
+
 export interface DialogInfo {
   show: boolean;
   text: string;
@@ -7,7 +9,7 @@ export interface DialogInfo {
 
 export interface FieldInfo {
   current: string;
-  state: string;
+  state: "none" | "error" | "success" | "warning";
 }
 
 export interface DocumentText {
@@ -61,7 +63,7 @@ export const sendRequest = async (
     }
 
     // Set the API URL
-    const apiUrl = "https://fg.server.lavel.io" + targetEndpoint;
+    const apiUrl = API_BASE_URL + targetEndpoint;
 
     // Send the request
     const response = await fetch(apiUrl, {

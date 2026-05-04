@@ -81,7 +81,7 @@ Command-related functionality for Outlook integration.
 - Integrates with external AI services via API endpoints
 - Connects to two domains:
   - Primary VPS domain
-  - Server at fg.server.lavel.io
+  - Server at core.fg-hausverwaltung.de
 
 ## Deployment
 The add-in is deployed to a VPS with the following assets:
